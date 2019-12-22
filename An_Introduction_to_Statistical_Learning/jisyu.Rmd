@@ -1,0 +1,116 @@
+---
+title: "10. 実習"
+author: "hidawa"
+date: "2019/6/21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 10.5 実習2:クラスタリング
+
+## 10.5.1 K平均クラスタリング
+
+```{r}
+#K=2としたｋ平均クラスタリングを実行
+set.seed(2)
+x = matrix(rnorm(50*2),ncol=2)
+x[1:25,1]=x[1:25,1]+3
+x[1:25,2]=x[1:25,2]-4
+
+km.out=kmeans(x,2,nstart=20)
+#割り当て
+km.out$cluster
+#plot_+1で色をかえる
+plot(x,col=(km.out$cluster+1),main="K平均クラスタリングの結果(K=2)",
+xlab="",ylab="",pch=20,cex=2)
+
+#K=3としたｋ平均クラスタリングを実行
+set.seed(4)
+km.out=kmeans(x,3,nstart=20)
+km.out
+plot(x,col=(km.out$cluster+1),main="K平均クラスタリングの結果(K=3)",
+xlab="",ylab="",pch=20,cex=2)
+
+#nstart=Nで初期値の割り当てをN回行う,tot.withinssはクラスター内平方和（最適化する式10.11）
+#個別のクラスター内平方和はkm.out$withinssにベクトル形式で含まれている。
+set.seed(3)
+km.out=kmeans(x,3,nstart=1)
+km.out$tot.withinss
+```
+
+
+## 10.5.2 階層的クラスタリング
+```{r}
+#dist()はユークリッド距離行列,completeは完全連結法,average平均連結法,single単連結法
+hc.complete=hclust(dist(x),method="complete")
+hc.average=hclust(dist(x),method="average")
+hc.single=hclust(dist(x),method="single")
+
+#plot
+par(mfrow=c(1,3))
+plot(hc.complete,main="完全連結法",xlab="",sub="",cex=.9)
+plot(hc.average,main="平均連結法",xlab="",sub="",cex=.9)
+plot(hc.single,main="単連結法",xlab="",sub="",cex=.9)
+
+#デンドログラムの切断
+cutree(hc.complete,2)
+cutree(hc.average,2)
+cutree(hc.single,2)
+#単連結では鎖効果
+cutree(hc.single,4)
+
+#scale
+par(mfrow=c(1,1))
+xsc = scale(x, center=FALSE, scale=TRUE)
+plot(hclust(dist(xsc), method="complete"), main="階層的クラスタリング（スケール調整後）")
+
+#相関に基づく距離as.dist(),3次元クラスタリング
+x = matrix(rnorm(30*3),ncol=3)
+dd = as.dist(1-cor(t(x)))
+plot(hclust(dd, method="complete"), main="完全連結法（相関に基づく距離による）",
+xlab="",sub="")
+```
+
+
+## 10.6 実習3:NCI60データへの適用例
+```{r}
+#NCI60データに対してクラスタリング
+library(ISLR)
+nci.labs=NCI60$labs
+nci.data=NCI60$data
+```
+
+
+## NCI60データの観測値のクラスタリング
+```{r}
+sd.data = scale(nci.data,FALSE,TRUE)
+data.dist=dist(sd.data)
+
+plot(hclust(data.dist), labels=nci.labs, main="完全連結法",
+xlab="",sub="",ylab="")
+hc.out = hclust(dist(sd.data))
+hc.clusters=cutree(hc.out,4)
+table(hc.clusters,nci.labs)
+#LEUKEMIAは白血病
+
+plot(hc.out, labels=nci.labs)
+abline(h=139,col="red")
+#赤線で切る
+
+hc.out #オブジェクトの要約確認
+
+#次はK平均
+set.seed(2)
+km.out = kmeans(sd.data, 4, nstart=20)
+km.clusters = km.out$cluster
+table(km.clusters,hc.clusters)
+
+#階層的クラスタリング
+pr.out = prcomp(nci.data,scale = TRUE)
+hc.out = hclust(dist(pr.out$x[,1:5]))
+plot(hc.out,labels = nci.labs,main = "最初の5個の主成分スコアベクトルの階層的クラスタリング")
+table(cutree(hc.out,4),nci.labs)
+```

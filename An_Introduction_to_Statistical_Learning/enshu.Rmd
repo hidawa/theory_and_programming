@@ -1,0 +1,216 @@
+---
+title: "10.7 演習問題"
+author: ""
+date: "2019/6/23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# (1)
+## (a)
+
+\begin{eqnarray}
+
+&   & \frac{1}{|C_k|}\sum_{i,i'\in{C_k}}\sum_{j=1}^p(x_{ij}-x_{i'j})^2 \\
+
+& = & \frac{1}{|C_k|}\sum_{i\in{C_k}} \left\{ {\sum_{j=1}^p(x_{ij}-x_{1j})^2} + {\sum_{j=1}^p(x_{ij}-x_{2j})^2}
++ \cdots + {\sum_{j=1}^p(x_{ij}-x_{|C_k|j})^2} \right\} \\
+
+& = & \frac{1}{|C_k|}\sum_{i\in{C_k}}  \sum_{j=1}^p 
+\left\{ |C_k|x_{ij}^2 -2(x_{1j} + x_{2j} + \cdots + x_{|C_k|j})x_{ij} + (x_{1j}^2 + x_{1j}^2 + \cdots +x_{|c_k|j}^2) \right\}
+(∵二乗を展開) \\
+
+& = & 
+\sum_{i\in{C_k}}  \sum_{j=1}^p
+\left( x_{ij}^2 -2\frac{1}{|C_k|}\sum_{i'=1}^{|C_k|}x_{i'j} x_{ij}
+\right)
+ + 
+\sum_{i\in{C_k}}  \sum_{j=1}^p
+\left(
+\frac{\sum_{i\in{C_k}}x_{ij}^2}{|C_k|}
+\right) \\
+
+& = & 
+\sum_{i\in{C_k}}  \sum_{j=1}^p
+\left( x_{ij}^2 -2\bar{x}_{kj} x_{ij} + \bar{x}_{kj}^2
+\right)
+ + 
+\sum_{i\in{C_k}}  \sum_{j=1}^p
+\left(
+\frac{\sum_{i\in{C_k}}x_{ij}^2}{|C_k|} - \bar{x}_{kj}^2
+\right) 
+(∵\bar{x}_{kj}^2を挿入) \\
+
+& = &
+\sum_{i\in{C_k}}\sum_{j=1}^p(x_{ij}-\bar{x}_{kj})^2
++ \sum_{i\in{C_k}}\sum_{j=1}^p(x_{ij}-\bar{x}_{kj})^2 \\
+
+& = &
+2\sum_{i\in{C_k}}\sum_{j=1}^p(x_{ij}-\bar{x}_{kj})^2
+
+\end{eqnarray}
+
+## (b)
+まず,最適化問題(10.11)が割り当てステップによって減少することを示す.<br>
+$x_i\in C_k$ だったのがStep2(b)で$x_{i} \in C_{k'}$ に移るとする.<br>
+これは,各$x_{ij}$はもっとも近い重心に割り当てられるため,
+$$
+\sum_{i\in{C_k}}\sum_{j = 1}^p (x_{ij} - \bar{x}_{k'j})^2 ≤ \sum_{i\in{C_k}}\sum_{j = 1}^p (x_{ij} - \bar{x}_{kj})^2
+$$
+が成立し,その距離が影響する(10.11)は減少する.<br>
+次に再計算ステップでも減少することを証明する.<br>
+まず$f(v_{k1},\dots,v_{kj},\dots,v_{kp}) = \sum_{i\in{C_k}}\sum_{j = 1}^p (x_{ij} - v_{kj})^2$を最小とする
+$\forall j=1,\dots,p$,$v_{kj}$を見つける.<br>
+最小値では微分係数は0になるので,
+$$
+\frac{\partial f}{\partial v_{kj}} = \sum_{i\in{C_k}}2 (x_{ij} - v_{kj}) =0
+$$
+よって,
+$$
+v_{kj}=\frac{1}{|C_k|}\sum_{i\in{C_k}}x_{ij} = \bar{x}_{kj}
+$$
+よって,$v_{kj}$は重心の定義\bar{x}_{kj}に一致する.<br>
+よって前の重心から、新しい重心に移ることで$\sum_{i\in{C_k}}\sum_{j = 1}^p (x_{ij} - v_{kj})^2$は減少する.<br>
+これの合計である$\sum_{k=1}^{K}
+\frac{1}{|C_k|}\sum_{i,i'\in{C_k}}\sum_{j=1}^p(x_{ij}-x_{i'j})^2$も再計算ステップで減少する.<br>
+
+# (2)
+## (a)
+```{r}
+dmat = matrix(c(0,0.3,0.4,0.7,0.3,0,0.5,0.8,0.4,0.5,0,0.45,0.7,0.8,0.45,0),4,4)
+hc.2c=hclust(as.dist(dmat),method="complete")
+plot(hc.2c, main="完全連結法",
+xlab="",sub="",ylab="")
+```
+
+## (b)
+```{r}
+hc.2s=hclust(as.dist(dmat),method="single")
+plot(hc.2s, main="単連結法",
+xlab="",sub="",ylab="")
+```
+
+## (c)
+高さ0.7の切断で{1,2},{3,4}のクラスターを得る.
+
+## (d)
+高さ0.41の切断で{1,2,3},{4}のクラスターを得る.
+
+## (e)
+```{r}
+# dendoextendを使用
+library("dendextend")
+den2e <- dendextend::rotate(hc.2c,c(3,4,2,1))
+plot(den2e)
+```
+
+<br>
+
+# (3)
+## (a)
+```{r}
+data3 = matrix(c(1, 1, 0, 5, 6, 4, 4, 3, 4, 1, 2, 0),6,2)
+plot(data3)
+```
+
+## (b)
+```{r}
+set.seed(2)
+# ラベルをランダムに割り当てる
+label = sample(c(1,2),6,T)
+rownames(data3)=label
+data3
+
+plot(data3,col=(label),main="",
+xlab="X1",ylab="X2",pch=label,cex=2)
+```
+
+## (c)
+
+```{r}
+#クラスタ1の重心を計算する.
+cluster1_jusin = c(mean(data3[,1][rownames(data3)==1]),
+mean(data3[,2][rownames(data3)==1]))
+#クラスタ2の重心を計算する.
+cluster2_jusin = c(mean(data3[,1][rownames(data3)==2]),
+mean(data3[,2][rownames(data3)==2]))
+```
+
+
+## (d)
+```{r}
+for (i in 1:6) {
+  dist1 = sum((data3[i,]-cluster1_jusin)^2)
+  dist2 = sum((data3[i,]-cluster2_jusin)^2)
+  if (dist1<dist2){
+    label[i] = 1
+  }
+  else{
+  label[i] = 2
+  }
+}
+rownames(data3)=label
+data3
+```
+
+## (e)
+```{r}
+for(j in 1:4){
+  cluster1_jusin = c(mean(data3[,1][rownames(data3)==1]),
+  mean(data3[,2][rownames(data3)==1]))
+  cluster2_jusin = c(mean(data3[,1][rownames(data3)==2]),
+  mean(data3[,2][rownames(data3)==2]))
+
+  for (i in 1:6) {
+    dist1 = sum((data3[i,]-cluster1_jusin)^2)
+    dist2 = sum((data3[i,]-cluster2_jusin)^2)
+    if (dist1<dist2){
+    label[i] = 1
+    }
+    else{
+    label[i] = 2
+    }
+  }
+  rownames(data3)=label
+  data3
+  }
+```
+
+## (f)
+```{r}
+plot(data3,col=(label),main="",
+xlab="X1",ylab="X2",pch=label,cex=2)
+```
+
+# (4)
+## (a)
+以下、dist(x,y)はxとyの非類似度を表す関数である.<br>
+単連結法では,min[dist({1,2,3},{4,5})]の高さで結合する.<br>
+完全連結法では,max[dist({1,2,3},{4,5})]の高さで結合する.<br>
+よって,完全連結法のほうが高い位置で統合される.
+
+## (b)
+同じ高さで結合する.
+
+
+# (7)
+```{r}
+sd = scale(USArrests)
+c = 1-cor(sd)
+c
+dMA = mean((sd[,1]-sd[,2])^2)
+dMU = mean((sd[,1]-sd[,3])^2)
+dMR = mean((sd[,1]-sd[,4])^2)
+dAU = mean((sd[,2]-sd[,3])^2)
+dAR = mean((sd[,2]-sd[,4])^2)
+dUR = mean((sd[,3]-sd[,4])^2)
+
+d = matrix(c(0,dMA,dMU,dMR,dMA,0,dAU,dAR,dMU,dAU,0,dUR,dMR,dAR,dUR,0),4,4)
+d
+d/c
+```
+
+
